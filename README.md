@@ -52,11 +52,11 @@ Tested Platform:
    </parameters>
 </inboundEndpoint>
 
-listeningCriteria   - It can be one of these byLastUpdatedTimestampColumn or byBooleanColumn or deleteAfterPoll.
-listeningColumnName - The actual name of table column. It must be set if the listeningCriteria has the value 'byLastUpdatedTimestampColumn' or 'byBooleanColumn'.
-registryPath        - The registry path of the timestamp. This will be used to retrieve the records when the listeningCriteria has the value 'byLastUpdatedTimestampColumn'.
-driverName          - The class name of the database driver.
-url	                - The JDBC URL of the database.
-username            - The user name used to connect to the database.
-password            - The password used to connect to the database.
-tableName           - The name of the table to capture the change.
+1. listeningCriteria   - It can be one of these byLastUpdatedTimestampColumn or byBooleanColumn or deleteAfterPoll.
+2. listeningColumnName - The actual name of table column. It must be set if the listeningCriteria has the value 'byLastUpdatedTimestampColumn' or 'byBooleanColumn'.
+3. registryPath        - The registry path of the timestamp. This will be used to retrieve the records when the listeningCriteria has the value 'byLastUpdatedTimestampColumn'.
+4. driverName          - The class name of the database driver.
+5. url	                - The JDBC URL of the database.
+6. username            - The user name used to connect to the database.
+7. password            - The password used to connect to the database.
+8. tableName           - The name of the table to capture the change.
