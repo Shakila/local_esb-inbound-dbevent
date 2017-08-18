@@ -44,6 +44,7 @@ Tested Platform:
       <parameter name="coordination">true</parameter>
       <parameter name="listeningCriteria">byLastUpdatedTimestampColumn</parameter>
       <parameter name="listeningColumnName">LAST_UPDATED_DATE_TIME</parameter>
+      <parameter name="registryPath">customIE/timestamp</parameter>
       <parameter name="driverName">com.mysql.jdbc.Driver</parameter>
       <parameter name="url">jdbc:mysql://localhost/test</parameter>
       <parameter name="username">root</parameter>
@@ -53,6 +54,7 @@ Tested Platform:
 
 listeningCriteria   - It can be one of these byLastUpdatedTimestampColumn or byBooleanColumn or deleteAfterPoll.
 listeningColumnName - The actual name of table column. It must be set if the listeningCriteria has the value 'byLastUpdatedTimestampColumn' or 'byBooleanColumn'.
+registryPath        - The registry path of the timestamp. This will be used to retrieve the records when the listeningCriteria has the value 'byLastUpdatedTimestampColumn'.
 driverName          - The class name of the database driver.
 url	                - The JDBC URL of the database.
 username            - The user name used to connect to the database.
