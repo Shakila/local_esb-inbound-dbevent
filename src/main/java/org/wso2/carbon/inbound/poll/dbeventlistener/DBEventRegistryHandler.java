@@ -55,7 +55,9 @@ public class DBEventRegistryHandler {
                 byte[] content = (byte[]) resource.getContent();
                 obj = toObject(content);
             } else {
-                return getDefaultTimestamp();
+                String defaultTimestamp = getDefaultTimestamp();
+                writeToRegistry(resourcePath, defaultTimestamp);
+                return defaultTimestamp;
             }
         } catch (RegistryException e) {
             log.error("Error while accessing the registry", e);
@@ -111,7 +113,7 @@ public class DBEventRegistryHandler {
 
     /**
      *
-     * @return current timestamp
+     * @return default timestamp
      */
     private String getDefaultTimestamp() {
         Calendar cal = Calendar.getInstance();

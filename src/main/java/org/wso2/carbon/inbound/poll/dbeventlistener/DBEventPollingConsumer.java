@@ -53,7 +53,6 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
     private String dbURL;
     private String dbUsername;
     private String dbPassword;
-    private String inboundEndpointName;
     private String listeningColumnName;
     private String listeningCriteria;
     private String dbScript = null;
@@ -63,6 +62,7 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
     private String deleteQuery = null;
     private String updateQuery = null;
     private String currentTimestamp = null;
+    private String registryPath = null;
 
     /**
      * @param properties
@@ -83,7 +83,10 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
         dbPassword = properties.getProperty(DBEventConstants.DB_PASSWORD);
         listeningCriteria = properties.getProperty(DBEventConstants.DB_LISTENING_CRITERIA);
         listeningColumnName = properties.getProperty(DBEventConstants.DB_LISTENING_COLUMN_NAME);
-        inboundEndpointName = name;
+        registryPath = properties.getProperty(DBEventConstants.REGISTRY_PATH);
+        if(StringUtils.isEmpty(registryPath)) {
+            registryPath = name;
+        }
     }
 
     /**
@@ -116,7 +119,9 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
             if (isRollback(msgCtx)) {
                 return false;
             } else {
-                dbEventListnerRegistryHandler.writeToRegistry(inboundEndpointName, currentTimestamp);
+                if (listeningCriteria.equals(DBEventConstants.DB_LISTENING_BY_TIMESTAMP)) {
+                    dbEventListnerRegistryHandler.writeToRegistry(registryPath, currentTimestamp);
+                }
                 if (StringUtils.isNotEmpty(deleteQuery)) {
                     statement = connection.prepareStatement(deleteQuery);
                     query = deleteQuery;
@@ -151,8 +156,10 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
     private void executeDBQuery() {
         String tableName = properties.getProperty(DBEventConstants.DB_TABLE);
         DBEventRegistryHandler dbEventListnerRegistryHandler = new DBEventRegistryHandler();
-        String lastUpdatedTimestampFromRegistry = dbEventListnerRegistryHandler.readFromRegistry(inboundEndpointName)
-                .toString();
+        String lastUpdatedTimestampFromRegistry = null;
+        if (listeningCriteria.equals(DBEventConstants.DB_LISTENING_BY_TIMESTAMP)) {
+            lastUpdatedTimestampFromRegistry = dbEventListnerRegistryHandler.readFromRegistry(registryPath).toString();
+        }
         dbScript = buildQuery(tableName, listeningCriteria,
                 listeningColumnName, lastUpdatedTimestampFromRegistry);
         try {
@@ -194,7 +201,6 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
                         deleteQuery += columnName + "='" + columnValue + "' AND ";
                     } else if(StringUtils.isNotEmpty(updateQuery) && primaryKeys.contains(columnName)) {
                         updateQuery += columnName + "='" + columnValue + "' AND ";
-                        dbScript = updateQuery;
                     }
                     OMElement messageElement = factory.createOMElement(columnName, null);
                     messageElement.setText(columnValue);
@@ -227,9 +233,9 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
             String lastUpdatedTimestampFromRegistry) {
         if (listeningCriteria.equals(DBEventConstants.DB_LISTENING_BY_TIMESTAMP)) {
             return "SELECT * FROM " + tableName + " WHERE " + listeningColumnName + " > '"
-                    + lastUpdatedTimestampFromRegistry + "'";
+                    + lastUpdatedTimestampFromRegistry + "' ORDER BY " + listeningColumnName;
         } else if (listeningCriteria.equals(DBEventConstants.DB_LISTENING_BY_BOOLEAN)){
-            return "SELECT * FROM " + tableName + " WHERE " + listeningColumnName + " = 'true'";
+            return "SELECT * FROM " + tableName + " WHERE " + listeningColumnName + "='true'";
         } else {
             return "SELECT * FROM " + tableName;
         }
@@ -238,16 +244,18 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
     @Override
     public void destroy() {
         try {
-            if (statement != null)
+            if (statement != null) {
                 statement.close();
+            }
         } catch (SQLException sqle) {
             log.error("Error while closing the SQL statement.", sqle);
         }
         try {
-            if (connection != null)
+            if (connection != null) {
                 connection.close();
+            }
         } catch (SQLException sqle) {
-            log.error("Error while destroying connection to '" + dbURL + "'", sqle);
+            log.error("Error while destroying the connection to '" + dbURL + "'", sqle);
         }
     }
 
@@ -289,7 +297,7 @@ public class DBEventPollingConsumer extends GenericPollingConsumer {
     }
 
     /**
-     * Check whether the message is roll backed or not.
+     * Check whether the message should be rolled back or not.
      */
     private boolean isRollback(MessageContext msgCtx) {
         Object rollbackProp = msgCtx.getProperty(DBEventConstants.IS_ROLLBACK);

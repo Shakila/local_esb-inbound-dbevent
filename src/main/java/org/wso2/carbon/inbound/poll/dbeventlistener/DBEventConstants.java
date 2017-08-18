@@ -29,4 +29,5 @@ public class DBEventConstants {
     public static final String DB_DELETE_AFTER_POLL = "deleteAfterPoll";
     public static final String REGISTRY_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String IS_ROLLBACK = "IS_ROLLBACK";
+    public static final String REGISTRY_PATH = "registryPath";
 }
